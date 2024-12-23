@@ -343,6 +343,7 @@ for path in paths:
     for a in range(0, len(list_of_plays)):
         copy = list_of_plays[a]
         row_dict = {}
+        index = 0
         for b in dataframe_columns:
             row_dict[b] = 0
             
@@ -359,6 +360,7 @@ for path in paths:
                                                                 or copy.iloc[c]['position'] == 'WR'):
 
                     row_dict[b] = copy.iloc[c]['Adjusted Difference Maximum']
+                    index = c
 
 
                 if copy.iloc[c]['position'] == b[:len(b) - 1] and (copy.iloc[c]['position'] != 'QB' and
@@ -368,8 +370,10 @@ for path in paths:
                     
 
                     row_dict[b] = copy.iloc[c]['distancefromweapon']
+                    index = c
 
-                copy.drop(c, inplace = True)
+                copy = copy.drop(index, inplace = False)
+                copy = copy.reset_index(drop = True)
 
         rows.append(row_dict)    
 
@@ -403,7 +407,7 @@ line_dataset.to_csv("C:/Users/anime/Downloads/line fitting data.csv")
 
     
 
-
+#copy.reset_index(inplace = False)
 
         
 
