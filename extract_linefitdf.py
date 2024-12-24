@@ -1,13 +1,15 @@
 import pandas as pd
 import numpy as np
-
-paths = ["C:/Users/anime/Downloads/tracking_week_1.csv", "C:/Users/anime/Downloads/tracking_week_2.csv", "C:/Users/anime/Downloads/tracking_week_3.csv",
-         "C:/Users/anime/Downloads/tracking_week_4.csv", "C:/Users/anime/Downloads/tracking_week_5.csv", "C:/Users/anime/Downloads/tracking_week_6.csv",
-         "C:/Users/anime/Downloads/tracking_week_7.csv","C:/Users/anime/Downloads/tracking_week_8.csv","C:/Users/anime/Downloads/tracking_week_9.csv"]
+paths = ["C:/Users/anime/Downloads/tracking_week_1.csv"]
+#paths = ["C:/Users/anime/Downloads/tracking_week_1.csv", "C:/Users/anime/Downloads/tracking_week_2.csv", "C:/Users/anime/Downloads/tracking_week_3.csv",
+        # "C:/Users/anime/Downloads/tracking_week_4.csv", "C:/Users/anime/Downloads/tracking_week_5.csv", "C:/Users/anime/Downloads/tracking_week_6.csv",
+         #"C:/Users/anime/Downloads/tracking_week_7.csv","C:/Users/anime/Downloads/tracking_week_8.csv","C:/Users/anime/Downloads/tracking_week_9.csv"]
 
 list_of_line_fitting_dfs = []
 
 for path in paths:
+
+    print(path)
 
     week_1 = pd.read_csv(path)
     week_1_complete = week_1[week_1['event'] == 'pass_outcome_caught']
@@ -57,10 +59,10 @@ for path in paths:
                 for b in range(0, len(x)):
 
                     if x.iloc[b]['position'] == 'QB' or x.iloc[b]['position'] == 'WR' or x.iloc[b]['position'] == 'TE' or x.iloc[b]['position'] == 'RB':
-                        print('hi')
+                        #print('hi')
                         euc = ((x.iloc[i]['x'] - x.iloc[b]['x'])**2 +(x.iloc[i]['y'] - x.iloc[b]['y'])**2)**0.5
                         if euc < dist:
-                            print(euc)
+                            #print(euc)
                             dist = euc
             dist_arr.append(dist)
 
@@ -98,10 +100,10 @@ for path in paths:
                 for b in range(0, len(x)):
 
                     if x.iloc[b]['position'] == 'QB' or x.iloc[b]['position'] == 'WR' or x.iloc[b]['position'] == 'TE' or x.iloc[b]['position'] == 'RB':
-                        print('hi')
+                       # print('hi')
                         euc = ((x.iloc[i]['x'] - x.iloc[b]['x'])**2 +(x.iloc[i]['y'] - x.iloc[b]['y'])**2)**0.5
                         if euc < dist:
-                            print(euc)
+                        #    print(euc)
                             dist = euc
                             name = x.iloc[b]['displayName']
 
@@ -127,8 +129,8 @@ for path in paths:
         for y in range(0, len(dfl[x]['closestplay'].unique())):
             dist_sum = 0
             for z in range(0, len(dfl[x])):
-                print(dfl[x].iloc[z]['closestplay'])
-                print(dfl[x]['closestplay'].unique()[y])
+             #   print(dfl[x].iloc[z]['closestplay'])
+             #   print(dfl[x]['closestplay'].unique()[y])
                 if dfl[x].iloc[z]['closestplay'] == dfl[x]['closestplay'].unique()[y] and dfl[x].iloc[z]['closestplay'] != 'test':
 
                     dist_sum += (dfl[x].iloc[z]['distancefromweapon'])
@@ -225,8 +227,8 @@ for path in paths:
             east_sum = 0
             west_sum = 0
             for z in range(0, len(dfl[x])):
-                print(dfl[x].iloc[z]['closestplay'])
-                print(dfl[x]['closestplay'].unique()[y])
+             #   print(dfl[x].iloc[z]['closestplay'])
+              #  print(dfl[x]['closestplay'].unique()[y])
                 if dfl[x].iloc[z]['closestplay'] == dfl[x]['closestplay'].unique()[y] and dfl[x].iloc[z]['closestplay'] != 'test':
 
                     north_sum += (np.abs(dfl[x].iloc[z]['distancefromweapon'] - dfl[x].iloc[z]['adjusted_distances'][0]))
@@ -343,24 +345,42 @@ for path in paths:
     for a in range(0, len(list_of_plays)):
         copy = list_of_plays[a]
         row_dict = {}
-        index = 0
+        index = 10000
+
+        if copy.iloc[0]['event'] == final_data['event'].unique()[0]:
+            print(1)
+            row_dict['Outcome'] = 1
+        else:
+            print(0)
+            row_dict['Outcome'] = 0
+
+
         for b in dataframe_columns:
             row_dict[b] = 0
             
             for c in range(0, len(copy)):
 
-                if copy.iloc[c]['event'] == 'pass_outcome_caught':
+               # print(copy.iloc[c]['event'])
 
-                    row_dict['Outcome'] = 1
-                else:
-                    row_dict['Outcome'] = 0
+             
 
                 if copy.iloc[c]['position'] == b[:len(b) - 1] and (copy.iloc[c]['position'] == 'QB' or 
                                                                 copy.iloc[c]['position'] == 'RB' or copy.iloc[c]['position'] == 'TE'
                                                                 or copy.iloc[c]['position'] == 'WR'):
 
                     row_dict[b] = copy.iloc[c]['Adjusted Difference Maximum']
-                    index = c
+                    #index = c
+
+
+
+                    copy.at[c, 'position'] = 'C'
+                    print(copy.iloc[c]['position'])
+
+                  #  print(copy.iloc[c]['position'])
+
+
+                    
+                    break
 
 
                 if copy.iloc[c]['position'] == b[:len(b) - 1] and (copy.iloc[c]['position'] != 'QB' and
@@ -370,10 +390,17 @@ for path in paths:
                     
 
                     row_dict[b] = copy.iloc[c]['distancefromweapon']
-                    index = c
+                    #index = c
 
-                copy = copy.drop(index, inplace = False)
-                copy = copy.reset_index(drop = True)
+
+
+                    copy.at[c, 'position'] = 'C'
+
+                    print(copy.iloc[c]['position'])
+                    break
+
+                    print(index)
+            
 
         rows.append(row_dict)    
 
@@ -384,9 +411,10 @@ for path in paths:
     line_fitting_df = pd.DataFrame.from_dict(rows, orient='columns')
 
 
-    line_fitting_df.to_csv("C:/Users/anime/Downloads/week 1 pass probability training.csv")
+    #line_fitting_df.to_csv("C:/Users/anime/Downloads/week 1 pass probability training.csv")
 
     list_of_line_fitting_dfs.append(line_fitting_df)
+
 
 
 
