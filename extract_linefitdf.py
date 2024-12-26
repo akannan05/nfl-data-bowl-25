@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
 paths = ["C:/Users/anime/Downloads/tracking_week_1.csv"]
-#paths = ["C:/Users/anime/Downloads/tracking_week_1.csv", "C:/Users/anime/Downloads/tracking_week_2.csv", "C:/Users/anime/Downloads/tracking_week_3.csv",
-        # "C:/Users/anime/Downloads/tracking_week_4.csv", "C:/Users/anime/Downloads/tracking_week_5.csv", "C:/Users/anime/Downloads/tracking_week_6.csv",
-         #"C:/Users/anime/Downloads/tracking_week_7.csv","C:/Users/anime/Downloads/tracking_week_8.csv","C:/Users/anime/Downloads/tracking_week_9.csv"]
+paths = ["C:/Users/anime/Downloads/tracking_week_1.csv", "C:/Users/anime/Downloads/tracking_week_2.csv", "C:/Users/anime/Downloads/tracking_week_3.csv",
+         "C:/Users/anime/Downloads/tracking_week_4.csv", "C:/Users/anime/Downloads/tracking_week_5.csv", "C:/Users/anime/Downloads/tracking_week_6.csv",
+         "C:/Users/anime/Downloads/tracking_week_7.csv","C:/Users/anime/Downloads/tracking_week_8.csv","C:/Users/anime/Downloads/tracking_week_9.csv"]
 
 list_of_line_fitting_dfs = []
 
@@ -165,7 +165,7 @@ for path in paths:
                         #print('hi')
                         euc = ((x.iloc[i]['x'] - x.iloc[b]['x'])**2 +(x.iloc[i]['y'] - x.iloc[b]['y'])**2)**0.5
                         if euc < dist:
-                            print(euc)
+                         #   print(euc)
                             dist = euc
                             dist_n = ((x.iloc[i]['x'] - x.iloc[b]['x'])**2 +((x.iloc[i]['y']+1) - x.iloc[b]['y'])**2)**0.5
                             dist_s = ((x.iloc[i]['x'] - x.iloc[b]['x'])**2 +((x.iloc[i]['y']-1) - x.iloc[b]['y'])**2)**0.5
@@ -343,66 +343,76 @@ for path in paths:
 
     rows = []
     for a in range(0, len(list_of_plays)):
-        copy = list_of_plays[a]
+        copy = list_of_plays[a].copy()
         row_dict = {}
-        index = 10000
-
-        if copy.iloc[0]['event'] == final_data['event'].unique()[0]:
-            print(1)
-            row_dict['Outcome'] = 1
-        else:
-            print(0)
-            row_dict['Outcome'] = 0
 
 
+
+        used_indexes = []
+        
         for b in dataframe_columns:
             row_dict[b] = 0
+
+            
+
+            
             
             for c in range(0, len(copy)):
 
-               # print(copy.iloc[c]['event'])
+                if copy.iloc[c]['event'] == 'pass_outcome_caught':
 
-             
+                  #  print(1)
 
-                if copy.iloc[c]['position'] == b[:len(b) - 1] and (copy.iloc[c]['position'] == 'QB' or 
+                    row_dict['Outcome'] = 1
+
+                if copy.iloc[c]['event'] == 'pass_outcome_incomplete':
+
+                 #   print(0)
+
+                    row_dict['Outcome'] = 0
+
+            
+
+                if c not in used_indexes and copy.iloc[c]['position'] == b[:len(b) - 1] and (copy.iloc[c]['position'] == 'QB' or 
                                                                 copy.iloc[c]['position'] == 'RB' or copy.iloc[c]['position'] == 'TE'
                                                                 or copy.iloc[c]['position'] == 'WR'):
 
+
                     row_dict[b] = copy.iloc[c]['Adjusted Difference Maximum']
-                    #index = c
 
+                    used_indexes.append(c)
 
+                # copy.at[c, 'position'] = 'C'
 
-                    copy.at[c, 'position'] = 'C'
-                    print(copy.iloc[c]['position'])
+                # print(copy.iloc[c]['position'])
 
-                  #  print(copy.iloc[c]['position'])
-
-
-                    
                     break
 
+                    
 
-                if copy.iloc[c]['position'] == b[:len(b) - 1] and (copy.iloc[c]['position'] != 'QB' and
+
+                if c not in used_indexes and copy.iloc[c]['position'] == b[:len(b) - 1] and (copy.iloc[c]['position'] != 'QB' and
                                                                 copy.iloc[c]['position'] != 'RB' and copy.iloc[c]['position'] != 'TE'
                                                                 and copy.iloc[c]['position'] != 'WR' and copy.iloc[c]['position'] != 'T' and
                                                                 copy.iloc[c]['position'] != 'G' and copy.iloc[c]['position'] != 'C'):
                     
 
                     row_dict[b] = copy.iloc[c]['distancefromweapon']
-                    #index = c
 
+                    used_indexes.append(c)
 
-
-                    copy.at[c, 'position'] = 'C'
-
-                    print(copy.iloc[c]['position'])
+                    #copy.at[c, 'position'] = 'C'
                     break
 
-                    print(index)
-            
+                #copy.drop(c, inplace = True)
 
         rows.append(row_dict)    
+        
+
+
+            
+
+  
 
     line_fitting_df = pd.DataFrame({'QB1':[], 'QB2':[], 'WR1':[], 'WR2':[], 'WR3':[], 'WR4':[], 'CB1':[], 'CB2':[], 'CB3':[], 'CB4':[], 'CB5':[], 
                      'OLB1':[], 'OLB2':[], 'OLB3':[], 'OLB4':[], 'ILB1':[], 'ILB2':[], 'ILB3':[],  'FS1':[], 'FS2':[], 'FS3':[], 
