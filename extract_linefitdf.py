@@ -7,16 +7,34 @@ paths = ["C:/Users/anime/Downloads/tracking_week_1.csv", "C:/Users/anime/Downloa
 
 list_of_line_fitting_dfs = []
 
+yac_dfs = []
+
 for path in paths:
 
     print(path)
 
     week_1 = pd.read_csv(path)
+
     week_1_complete = week_1[week_1['event'] == 'pass_outcome_caught']
     week_1_incomplete = week_1[week_1['event'] == 'pass_outcome_incomplete']
 
-    players = pd.read_csv("C:/Users/anime/Downloads/players.csv")
     df_one = pd.concat([week_1_complete,week_1_incomplete])
+
+    df_one['Outcome'] = df_one['event'].replace(['pass_outcome_caught', 'pass_outcome_incomplete'], [1,0])
+
+    outcome_frame = pd.DataFrame()
+
+    outcome_frame['gameId'] = df_one['gameId']
+    outcome_frame['playId'] = df_one['playId']
+    outcome_frame['Outcome'] = df_one['Outcome']
+
+
+
+    week_1_arrivals = week_1[week_1['event'] == 'pass_arrived']
+    #week_1_incomplete = week_1[week_1['event'] == 'pass_outcome_incomplete']
+
+    players = pd.read_csv("C:/Users/anime/Downloads/players.csv")
+    df_one = pd.merge(week_1_arrivals, outcome_frame, on = ['gameId', 'playId'], how = 'left', suffixes = ['', '_dup'])
     df_one = pd.merge(df_one,players,on='displayName',how='left')
 
 
@@ -240,7 +258,7 @@ for path in paths:
             south_dist.append(south_sum)
             east_dist.append(east_sum)
             west_dist.append(west_sum)
-            max_dist.append(max([north_sum, south_sum, east_sum, west_sum]))
+            max_dist.append(sum([north_sum, south_sum, east_sum, west_sum])/4)
 
 
         north_difference.append(north_dist)
@@ -359,13 +377,13 @@ for path in paths:
             
             for c in range(0, len(copy)):
 
-                if copy.iloc[c]['event'] == 'pass_outcome_caught':
+                if copy.iloc[c]['Outcome'] == 1:
 
                   #  print(1)
 
                     row_dict['Outcome'] = 1
 
-                if copy.iloc[c]['event'] == 'pass_outcome_incomplete':
+                if copy.iloc[c]['Outcome'] == 0:
 
                  #   print(0)
 
@@ -420,17 +438,103 @@ for path in paths:
     
     line_fitting_df = pd.DataFrame.from_dict(rows, orient='columns')
 
+    dataframe_columns = ['WR1', 'WR2', 'WR3', 'WR4', 'CB1', 'CB2', 'CB3', 'CB4', 'CB5', 
+                     'OLB1', 'OLB2', 'OLB3', 'OLB4', 'ILB1', 'ILB2', 'ILB3',  'FS1', 'FS2', 'FS3', 
+                     'NT1', 'NT2', 'TE1', 'TE2', 'TE3', 'DE1', 'DE2', 'DE3', 'DE4', 'RB1', 'RB2', 'YAC']
+
+    rows = []
+    for a in range(0, len(list_of_plays)):
+        copy = list_of_plays[a].copy()
+        row_dict = {}
+
+
+
+        used_indexes = []
+        
+        for b in dataframe_columns:
+            row_dict[b] = 0
+
+            had_reception = ''
+
+            for d in range(0, len(copy)):
+
+                if copy.iloc[d]['hadPassReception'] == 1:
+
+                    had_reception = copy.iloc[d]['displayName']
+
+                    row_dict['YAC'] = copy.iloc[d]['yardageGainedAfterTheCatch']
+
+
+            
+            for c in range(0, len(copy)):
+
+
+
+            
+
+                if had_reception != '' and c not in used_indexes and copy.iloc[c]['hadPassReception'] == 1 and copy.iloc[c]['position'] == b[:len(b) - 1] and (copy.iloc[c]['position'] == 'QB' or 
+                                                                copy.iloc[c]['position'] == 'RB' or copy.iloc[c]['position'] == 'TE'
+                                                                or copy.iloc[c]['position'] == 'WR'):
+
+
+                    row_dict[b] = copy.iloc[c]['Adjusted Difference Maximum']
+
+                    used_indexes.append(c)
+
+                # copy.at[c, 'position'] = 'C'
+
+                # print(copy.iloc[c]['position'])
+
+                    break
+
+                    
+
+
+                if had_reception != '' and c not in used_indexes and copy.iloc[c]['closestplay'] == had_reception and copy.iloc[c]['position'] == b[:len(b) - 1] and (copy.iloc[c]['position'] != 'QB' and
+                                                                copy.iloc[c]['position'] != 'RB' and copy.iloc[c]['position'] != 'TE'
+                                                                and copy.iloc[c]['position'] != 'WR' and copy.iloc[c]['position'] != 'T' and
+                                                                copy.iloc[c]['position'] != 'G' and copy.iloc[c]['position'] != 'C'):
+                    
+
+                    row_dict[b] = copy.iloc[c]['distancefromweapon']
+
+                    used_indexes.append(c)
+
+                    #copy.at[c, 'position'] = 'C'
+                    break
+
+                #copy.drop(c, inplace = True)
+
+        rows.append(row_dict)    
+        
+
+
+            
+
+  
+
+    yac_df = pd.DataFrame({ 'WR1':[], 'WR2':[], 'WR3':[], 'WR4':[], 'CB1':[], 'CB2':[], 'CB3':[], 'CB4':[], 'CB5':[], 
+                     'OLB1':[], 'OLB2':[], 'OLB3':[], 'OLB4':[], 'ILB1':[], 'ILB2':[], 'ILB3':[],  'FS1':[], 'FS2':[], 'FS3':[], 
+                     'NT1':[], 'NT2':[], 'TE1':[], 'TE2':[], 'TE3':[], 'DE1':[], 'DE2':[], 'DE3':[], 'DE4':[], 'RB1':[], 'RB2':[], 'YAC':[]})
+    
+    yac_df = pd.DataFrame.from_dict(rows, orient='columns')
+
+
 
     #line_fitting_df.to_csv("C:/Users/anime/Downloads/week 1 pass probability training.csv")
 
-    list_of_line_fitting_dfs.append(line_fitting_df)
+    yac_dfs.append(yac_df)
 
 
 
 
 line_dataset = pd.concat(list_of_line_fitting_dfs, axis=0)
 
+yac_dataset = pd.concat(yac_dfs, axis = 0)
+
 line_dataset.to_csv("C:/Users/anime/Downloads/line fitting data.csv")
+
+yac_dataset.to_csv("C:/Users/anime/Downloads/yac data.csv")
     
 
 
