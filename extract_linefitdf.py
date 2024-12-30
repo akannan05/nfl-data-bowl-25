@@ -28,6 +28,8 @@ for path in paths:
     outcome_frame['playId'] = df_one['playId']
     outcome_frame['Outcome'] = df_one['Outcome']
 
+    outcome_frame = outcome_frame.groupby(['gameId', 'playId']).first()
+
 
 
     week_1_arrivals = week_1[week_1['event'] == 'pass_arrived']
@@ -35,6 +37,8 @@ for path in paths:
 
     players = pd.read_csv("C:/Users/anime/Downloads/players.csv")
     df_one = pd.merge(week_1_arrivals, outcome_frame, on = ['gameId', 'playId'], how = 'left', suffixes = ['', '_dup'])
+
+    
     df_one = pd.merge(df_one,players,on='displayName',how='left')
 
 
@@ -44,12 +48,18 @@ for path in paths:
 
         df_list.append(df_one[df_one['playId'] == x])
 
+    print("There are " + str(len(df_list[0])) + "rows")
+
+
+
     dfs = []
     for x in df_list:
 
         for y in x['gameId'].unique():
 
             dfs.append(x[x['gameId'] == y])
+
+    
 
     dfl = []
 
@@ -62,15 +72,28 @@ for path in paths:
 
         dfl[x]['distancefromweapon'] = 0
 
+    print('done')
+
+    print("There are " + str(len(dfl[0])) + "rows")
+
 
     arr = []
+    count = 0
     for x in dfl:
+
+        count += 1
 
         dist = 0
         dist_arr = []
 
+       # print(len(dfl) - count)
+
         for i in range(0, len(x)):
             dist = 10000
+
+           # print(len(x) - i)
+
+        #    print(len(x))
             
             if x.iloc[i]['position'] == 'SS' or x.iloc[i]['position'] == 'CB' or x.iloc[i]['position'] == 'OLB' or x.iloc[i]['position'] == 'ILB' or x.iloc[i]['position'] == 'FS' or x.iloc[i]['position'] == 'NT' or x.iloc[i]['position'] == 'DE':
                 
@@ -89,6 +112,9 @@ for path in paths:
     for x in range(0, len(arr)):
 
         dfl[x]['distancefromweapon'] = arr[x]
+
+
+    print('distance from weapon')
 
 
 
@@ -276,7 +302,7 @@ for path in paths:
 
 
 
-
+    print('max difference')
 
     array = []
     for a in range(0, len(dfl)):
@@ -311,7 +337,7 @@ for path in paths:
     play_data = pd.read_csv("C:/Users/anime/Downloads/plays.csv")
 
 
-
+    print('play merging')
 
     plays = pd.DataFrame()
 
@@ -357,7 +383,7 @@ for path in paths:
 
 
 
-
+    print('line data fitting')
 
     rows = []
     for a in range(0, len(list_of_plays)):
@@ -443,6 +469,8 @@ for path in paths:
                      'NT1', 'NT2', 'TE1', 'TE2', 'TE3', 'DE1', 'DE2', 'DE3', 'DE4', 'RB1', 'RB2', 'YAC']
 
     rows = []
+
+    print('extract yac')
     for a in range(0, len(list_of_plays)):
         copy = list_of_plays[a].copy()
         row_dict = {}
@@ -464,46 +492,48 @@ for path in paths:
 
                     row_dict['YAC'] = copy.iloc[d]['yardageGainedAfterTheCatch']
 
-
-            
-            for c in range(0, len(copy)):
-
+            if had_reception != '':
 
 
             
-
-                if had_reception != '' and c not in used_indexes and copy.iloc[c]['hadPassReception'] == 1 and copy.iloc[c]['position'] == b[:len(b) - 1] and (copy.iloc[c]['position'] == 'QB' or 
-                                                                copy.iloc[c]['position'] == 'RB' or copy.iloc[c]['position'] == 'TE'
-                                                                or copy.iloc[c]['position'] == 'WR'):
+                for c in range(0, len(copy)):
 
 
-                    row_dict[b] = copy.iloc[c]['Adjusted Difference Maximum']
 
-                    used_indexes.append(c)
+                
 
-                # copy.at[c, 'position'] = 'C'
-
-                # print(copy.iloc[c]['position'])
-
-                    break
-
-                    
+                    if had_reception != '' and c not in used_indexes and copy.iloc[c]['hadPassReception'] == 1 and copy.iloc[c]['position'] == b[:len(b) - 1] and (copy.iloc[c]['position'] == 'QB' or 
+                                                                    copy.iloc[c]['position'] == 'RB' or copy.iloc[c]['position'] == 'TE'
+                                                                    or copy.iloc[c]['position'] == 'WR'):
 
 
-                if had_reception != '' and c not in used_indexes and copy.iloc[c]['closestplay'] == had_reception and copy.iloc[c]['position'] == b[:len(b) - 1] and (copy.iloc[c]['position'] != 'QB' and
-                                                                copy.iloc[c]['position'] != 'RB' and copy.iloc[c]['position'] != 'TE'
-                                                                and copy.iloc[c]['position'] != 'WR' and copy.iloc[c]['position'] != 'T' and
-                                                                copy.iloc[c]['position'] != 'G' and copy.iloc[c]['position'] != 'C'):
-                    
+                        row_dict[b] = copy.iloc[c]['Adjusted Difference Maximum']
 
-                    row_dict[b] = copy.iloc[c]['distancefromweapon']
+                        used_indexes.append(c)
 
-                    used_indexes.append(c)
+                    # copy.at[c, 'position'] = 'C'
 
-                    #copy.at[c, 'position'] = 'C'
-                    break
+                    # print(copy.iloc[c]['position'])
 
-                #copy.drop(c, inplace = True)
+                        break
+
+                        
+
+
+                    if had_reception != '' and c not in used_indexes and copy.iloc[c]['closestplay'] == had_reception and copy.iloc[c]['position'] == b[:len(b) - 1] and (copy.iloc[c]['position'] != 'QB' and
+                                                                    copy.iloc[c]['position'] != 'RB' and copy.iloc[c]['position'] != 'TE'
+                                                                    and copy.iloc[c]['position'] != 'WR' and copy.iloc[c]['position'] != 'T' and
+                                                                    copy.iloc[c]['position'] != 'G' and copy.iloc[c]['position'] != 'C'):
+                        
+
+                        row_dict[b] = copy.iloc[c]['distancefromweapon']
+
+                        used_indexes.append(c)
+
+                        #copy.at[c, 'position'] = 'C'
+                        break
+
+                    #copy.drop(c, inplace = True)
 
         rows.append(row_dict)    
         
@@ -524,6 +554,7 @@ for path in paths:
     #line_fitting_df.to_csv("C:/Users/anime/Downloads/week 1 pass probability training.csv")
 
     yac_dfs.append(yac_df)
+    list_of_line_fitting_dfs.append(line_fitting_df)
 
 
 
