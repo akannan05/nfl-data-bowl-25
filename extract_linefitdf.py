@@ -484,6 +484,8 @@ for path in paths:
 
             had_reception = ''
 
+            
+
             for d in range(0, len(copy)):
 
                 if copy.iloc[d]['hadPassReception'] == 1:
@@ -492,46 +494,45 @@ for path in paths:
 
                     row_dict['YAC'] = copy.iloc[d]['yardageGainedAfterTheCatch']
 
-            if had_reception != '':
-
+            
 
             
-                for c in range(0, len(copy)):
+            for c in range(0, len(copy)):
 
 
 
                 
 
-                    if had_reception != '' and c not in used_indexes and copy.iloc[c]['hadPassReception'] == 1 and copy.iloc[c]['position'] == b[:len(b) - 1] and (copy.iloc[c]['position'] == 'QB' or 
+                if had_reception != '' and c not in used_indexes and copy.iloc[c]['hadPassReception'] == 1 and copy.iloc[c]['position'] == b[:len(b) - 1] and (copy.iloc[c]['position'] == 'QB' or 
                                                                     copy.iloc[c]['position'] == 'RB' or copy.iloc[c]['position'] == 'TE'
                                                                     or copy.iloc[c]['position'] == 'WR'):
 
 
-                        row_dict[b] = copy.iloc[c]['Adjusted Difference Maximum']
+                    row_dict[b] = copy.iloc[c]['Adjusted Difference Maximum']
 
-                        used_indexes.append(c)
+                    used_indexes.append(c)
 
                     # copy.at[c, 'position'] = 'C'
 
                     # print(copy.iloc[c]['position'])
 
-                        break
+                    break
 
                         
 
 
-                    if had_reception != '' and c not in used_indexes and copy.iloc[c]['closestplay'] == had_reception and copy.iloc[c]['position'] == b[:len(b) - 1] and (copy.iloc[c]['position'] != 'QB' and
+                if had_reception != '' and c not in used_indexes and copy.iloc[c]['closestplay'] == had_reception and copy.iloc[c]['position'] == b[:len(b) - 1] and (copy.iloc[c]['position'] != 'QB' and
                                                                     copy.iloc[c]['position'] != 'RB' and copy.iloc[c]['position'] != 'TE'
                                                                     and copy.iloc[c]['position'] != 'WR' and copy.iloc[c]['position'] != 'T' and
                                                                     copy.iloc[c]['position'] != 'G' and copy.iloc[c]['position'] != 'C'):
                         
 
-                        row_dict[b] = copy.iloc[c]['distancefromweapon']
+                    row_dict[b] = copy.iloc[c]['distancefromweapon']
 
-                        used_indexes.append(c)
+                    used_indexes.append(c)
 
                         #copy.at[c, 'position'] = 'C'
-                        break
+                    break
 
                     #copy.drop(c, inplace = True)
 
