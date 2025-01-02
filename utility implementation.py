@@ -10,7 +10,7 @@ line_dataset = pd.read_csv("C:/Users/anime/Downloads/line fitting data.csv")
 
 yac_dataset = pd.read_csv("C:/Users/anime/Downloads/yac data.csv")
 
-
+players = pd.read_csv("C:/Users/anime/Downloads/players.csv")
 
 
 #print(full_df['event'].unique())
@@ -63,6 +63,12 @@ playId = []
 time = []
 utils = []
 
+names = []
+positions = []
+marginals = []
+gameIds = []
+playIds = []
+
 
 for x in all_data['gameId'].unique():
 
@@ -83,22 +89,48 @@ for x in all_data['gameId'].unique():
 
             dfs = extract_play_df_list(week_data_path=paths[0], gameId = x, playId = y)
 
-            for z in dfs:
+            for z in range(0, len(dfs), 10):
 
-                utils.append(find_utility(z,line_dataset, yac_dataset, prob_model, yac_model, position))
-                time.append(z.iloc[0]['time'])
+                utils.append(find_utility(dfs[z],line_dataset, yac_dataset, prob_model, yac_model, position))
+                time.append(dfs[z].iloc[0]['time'])
                 gameId.append(x)
                 playId.append(y)
 
+                for a in dfs[z]['displayName'].unique():
+
+                    pos = players[players['displayName'] == a].iloc[0]['position']
+
+                    if pos == 'CB' or pos == 'DE' or pos == 'NT' or pos == 'FS' or pos == 'SS' or pos == 'ILB' or pos == 'OLB':
+
+                        marginals.append(marginal_utility(dfs[z],line_dataset, yac_dataset, prob_model, yac_model, position,a) - find_utility(dfs[z],line_dataset, yac_dataset, prob_model, yac_model, position))
+                        positions.append(pos)
+                        names.append(a)
+                        gameIds.append(x)
+                        playIds.append(y)
+
             
             all_play_utility_data = pd.DataFrame()
+            all_play_marginal_data = pd.DataFrame()
 
             all_play_utility_data['gameId'] = gameId
+            all_play_marginal_data['gameId'] = gameIds
+            all_play_marginal_data['playId'] = playIds
+         
+            all_play_marginal_data['Name'] = names
+            all_play_marginal_data['Positions'] = positions
+            all_play_marginal_data['Marginal Utility'] = marginals
+            all_play_marginal_data['playId'] = playId
+            all_play_marginal_data['playId'] = playId
+            all_play_marginal_data['playId'] = playId
             all_play_utility_data['playId'] = playId
             all_play_utility_data['Utility'] = utils
             all_play_utility_data['Time'] = time
 
             all_play_utility_data.to_csv("C:/Users/anime/Downloads/utility dataset.csv")
+
+            all_play_marginal_data.to_csv("C:/Users/anime/Downloads/marginal dataset.csv")
+
+
 
             
 
