@@ -55,6 +55,7 @@ for x in paths:
 
 
 all_data = pd.concat(data_list, axis = 0)
+all_data = pd.merge(all_data, players, on = 'displayName', how = 'left')
 
 print(all_data)
 
@@ -68,7 +69,7 @@ positions = []
 marginals = []
 gameIds = []
 playIds = []
-
+mar_times = []
 
 for x in all_data['gameId'].unique():
 
@@ -87,9 +88,12 @@ for x in all_data['gameId'].unique():
        
             position = df[df['displayName'] == 'football'][df['event'] == 'ball_snap'].iloc[0]['x']
 
-            dfs = extract_play_df_list(week_data_path=paths[0], gameId = x, playId = y)
+            dfs = extract_play_df_list(df)
 
-            for z in range(0, len(dfs), 10):
+            for z in range(0, len(dfs)):
+                print(len(dfs))
+                print(len(dfs) - z)
+                print(dfs[z].iloc[0]['time'])
 
                 utils.append(find_utility(dfs[z],line_dataset, yac_dataset, prob_model, yac_model, position))
                 time.append(dfs[z].iloc[0]['time'])
@@ -98,15 +102,21 @@ for x in all_data['gameId'].unique():
 
                 for a in dfs[z]['displayName'].unique():
 
-                    pos = players[players['displayName'] == a].iloc[0]['position']
+                    print(a)
 
-                    if pos == 'CB' or pos == 'DE' or pos == 'NT' or pos == 'FS' or pos == 'SS' or pos == 'ILB' or pos == 'OLB':
+                    if a != 'football':
 
-                        marginals.append(marginal_utility(dfs[z],line_dataset, yac_dataset, prob_model, yac_model, position,a) - find_utility(dfs[z],line_dataset, yac_dataset, prob_model, yac_model, position))
-                        positions.append(pos)
-                        names.append(a)
-                        gameIds.append(x)
-                        playIds.append(y)
+                        pos = players[players['displayName'] == a].iloc[0]['position']
+
+                        if pos == 'CB' or pos == 'DE' or pos == 'NT' or pos == 'FS' or pos == 'SS' or pos == 'ILB' or pos == 'OLB':
+
+                            marginals.append(marginal_utility(dfs[z],line_dataset, yac_dataset, prob_model, yac_model, position,a) - find_utility(dfs[z],line_dataset, yac_dataset, prob_model, yac_model, position))
+                            positions.append(pos)
+                            names.append(a)
+                            gameIds.append(x)
+
+                            mar_times.append(dfs[z].iloc[0]['time'])
+                            playIds.append(y)
 
             
             all_play_utility_data = pd.DataFrame()
@@ -119,9 +129,8 @@ for x in all_data['gameId'].unique():
             all_play_marginal_data['Name'] = names
             all_play_marginal_data['Positions'] = positions
             all_play_marginal_data['Marginal Utility'] = marginals
-            all_play_marginal_data['playId'] = playId
-            all_play_marginal_data['playId'] = playId
-            all_play_marginal_data['playId'] = playId
+            all_play_marginal_data['Marginal Times'] = mar_times
+            
             all_play_utility_data['playId'] = playId
             all_play_utility_data['Utility'] = utils
             all_play_utility_data['Time'] = time

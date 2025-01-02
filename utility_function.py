@@ -45,7 +45,40 @@ def forecast_yac(df):
 
     return model
 
+def marginal_calculate_aggregate_openness_percentage(play_df, displayName):
 
+    sum = 0
+    marginal = 0
+
+    players = pd.read_csv("C:/Users/anime/Downloads/players.csv")
+
+
+    for x in range(0, len(play_df)):
+
+        if play_df.iloc[x]['displayName'] == displayName:
+
+            marginal += play_df.iloc[x]['Adjusted Difference Maximum']
+
+        if play_df.iloc[x]['closestplay'] == displayName:
+
+            marginal += play_df.iloc[x]['distancefromweapon']
+
+        if play_df.iloc[x]['displayName'] in play_df['closestplay'].unique() and play_df.iloc[x]['position'] != 'QB':
+
+
+
+            sum += play_df.iloc[x]['Adjusted Difference Maximum']
+
+
+        if play_df.iloc[x]['closestplay'] != 'test':
+
+            if (play_df.iloc[x]['position'] == 'NT' or play_df.iloc[x]['position'] == 'DE' or play_df.iloc[x]['position'] == 'CB'
+                or play_df.iloc[x]['position'] == 'FS' or play_df.iloc[x]['position'] == 'OLB' or play_df.iloc[x]['position'] == 'ILB' 
+                and players[players['displayName'] == play_df.iloc[x]['closestplay']].iloc[0]['position'] != 'QB'):
+
+                sum += play_df.iloc[x]['distancefromweapon']
+
+    return marginal/sum
 def calculate_aggregate_openness_percentage(play_df, displayName):
 
     sum = 0
@@ -543,19 +576,19 @@ def find_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac_mod
     return utility
 
 
-def extract_play_df_list(week_data_path, gameId, playId):
+def extract_play_df_list(df):
 
-    df = pd.read_csv(week_data_path)
+   # df = pd.read_csv(week_data_path)
 
     
 
-    players = pd.read_csv("C:/Users/anime/Downloads/players.csv")
+   # players = pd.read_csv("C:/Users/anime/Downloads/players.csv")
 
-    df = pd.merge(df, players, on = 'displayName', how = 'left')
+  #  df = pd.merge(df, pd.read_csv("C:/Users/anime/Downloads/players.csv"), on = 'displayName', how = 'left')
 
-    df = df[df['gameId'] == gameId]
+   # df = df[df['gameId'] == gameId]
 
-    df = df[df['playId'] == playId]
+   # df = df[df['playId'] == playId]
 
     df.reset_index(inplace = True)
 
@@ -595,11 +628,22 @@ def extract_play_df_list(week_data_path, gameId, playId):
 
     df['time'] = df['time'] - snap_time
 
+    df['time'] = np.round(df['time'], 2)
+
+    df = df.sort_values(by = 'time')
+    copy = df.drop_duplicates(subset = ['time'])
+    
+    copy.reset_index(inplace = True)
+
+    copy = copy["time"]
+
     df.reset_index(inplace=True)
 
-    for x in df['time']:
 
-        df_list.append(df[df['time'] == x])
+
+    for x in range(0, len(copy), 10):
+
+        df_list.append(df[df['time'] == copy[x]])
 
     
 
@@ -1040,9 +1084,17 @@ def marginal_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac
     for x in play_df['closestplay'].unique():
         #print(utility)
 
+        check = 0
+
+        for a in range(0, len(play_df[play_df['closestplay'] == x])):
+
+            if play_df[play_df['closestplay'] == x].iloc[a]['displayName'] == player_name:
+
+                check = 1
 
 
-        if x != 'test' and players[players['displayName'] == x].iloc[0]['position'] != 'QB':
+
+        if check == 0 and players[players['displayName'] == x].iloc[0]['position'] != 'QB':
 
             
             play_df['distancefromlos'] = play_df['distancefromlos'].fillna(0)
@@ -1063,7 +1115,7 @@ def marginal_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac
 
 
             
-            utility += completion_probability[0][1] * ((dist + yac_model.predict(yac_df[yac_df['Name'] == x].drop(['Name','WR2', 'WR3', 'WR4','CB4','CB5','OLB3','OLB4','ILB3', 'TE2', 'TE3', 'DE4', 'RB2', 'CB3'], axis = 1))) * calculate_aggregate_openness_percentage(play_df, x))
+            utility += completion_probability[0][1] * ((dist + yac_model.predict(yac_df[yac_df['Name'] == x].drop(['Name','WR2', 'WR3', 'WR4','CB4','CB5','OLB3','OLB4','ILB3', 'TE2', 'TE3', 'DE4', 'RB2', 'CB3'], axis = 1))) * marginal_calculate_aggregate_openness_percentage(play_df, x))
 
     
     return utility
