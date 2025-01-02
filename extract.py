@@ -44,6 +44,8 @@ def separate(totallist):
     weaponlist = []
     
     for jit in totallist:
+        jit[['name', 'position']] = jit[['name', 'position']].ffill()
+        jit = jit.iloc[1:]
         jit = jit.reset_index(drop=True)
         jit.index = range(1, len(jit) + 1)
         if jit.at[1, 'position'] in ['QB', 'RB', 'WR', 'G', 'TE', 'C', 'T']:
@@ -57,32 +59,75 @@ def separate(totallist):
              
     return defenselist, weaponlist, offenselist
 
-def euc_distance(pos1, pos2):
-    dist = []
-    for p in range(len(pos1)):
-        dist.append(math.sqrt((pos1[0] - pos2[0])**2 + (pos1[1] - pos2[1])**2))
-    return dist
+def proto_euc_distance(pos1, pos2):
+    return math.sqrt((pos1[0] - pos2[0])**2 + (pos1[1] - pos2[1])**2)
 
 def findclosest(defense, weapons):
     '''
     input: list of defense players at a specific play, list of weapons at a specific player
     output: new defense list with modified dfs containing info on closest weapon for each defender 
     '''
-    pos_weapons = []
     pos_defense = []
-    new_defense = []
-    for w in weapons:
-        pos_weapons.append(w[['name', 'player_x', 'player_y']])
+    pos_weapon = []
     for d in defense:
         pos_defense.append(d[['name', 'player_x', 'player_y']])
-        
-    # for defense_position in pos_defense:
-    #     dist_each_weapon = []
-    #     pos1 =  
-    #     for weapon_position in pos_weapons:
-            
+    for w in weapons:
+        pos_weapon.append(w[['name', 'player_x', 'player_y']])
     
-    return new_defense
+    pos_each_def = []
+    pos_each_weap = []
+
+    for pos in pos_defense:
+        new_df = pd.DataFrame({'euc_position': [list(xy) for xy in zip(pos['player_x'], pos['player_y'])]})
+        new_df['name'] = pos.at[1, 'name']
+        new_df = new_df[['name', 'euc_position']]
+        pos_each_def.append(new_df)
+        
+    for pos in pos_weapon:
+        new_df = pd.DataFrame({'euc_position': [list(xy) for xy in zip(pos['player_x'], pos['player_y'])]})
+        new_df['name'] = pos.at[1, 'name']
+        new_df = new_df[['name', 'euc_position']]
+        pos_each_weap.append(new_df)
+        
+    num_weps = len(pos_each_weap)
+    defs_and_distances_total = []
+    for p_def in pos_each_def:
+        pos_def_to_wep = []
+        for w_def in pos_each_weap:
+            combine = pd.DataFrame({
+                'name_def': p_def['name'],
+                'pos_def': p_def['euc_position'],
+                'name_wep': w_def['name'],
+                'pos_wep': w_def['euc_position']
+            })
+            combine['distance'] = combine.apply(lambda row: proto_euc_distance(row['pos_def'], row['pos_wep']), axis=1)
+            pos_def_to_wep.append(combine)
+        min_distances = []
+        min_distances_weps = []
+        for i in range(pos_def_to_wep[0].shape[0]):
+            min_distance = 130**2  # some distance that is greater than the football field
+            min_distance_wep = ""
+            for k in range(num_weps):
+                if pos_def_to_wep[k].at[i, 'distance'] < min_distance:
+                    min_distance = pos_def_to_wep[k].at[i, 'distance']
+                    min_distance_wep = pos_def_to_wep[k].at[i, 'name_wep'] 
+            min_distances.append(min_distance)
+            min_distances_weps.append(min_distance_wep)
+        defs_and_distances = pd.DataFrame({
+            'name_def': p_def['name'],
+            'pos_def': p_def['euc_position'],
+            'min_distance_wep': min_distances_weps,
+            'min_distance': min_distances,
+        })        
+        defs_and_distances_total.append(defs_and_distances)
+        
+    merged_defenders = []
+    for idx, df in enumerate(defs_and_distances_total):
+        df_t = defense[idx]
+        df_t = df_t.merge(df, left_index=True, right_index=True)
+        merged_defenders.append(df_t)
+        
+    return merged_defenders
     
     
 def main():
@@ -91,7 +136,7 @@ def main():
     defense = separate(extractlist)[0]
     weapons = separate(extractlist)[1]
     
-    defense = findclosest(defense, weapons)
+    # defense = findclosest(defense, weapons)
         
 if __name__ == "__main__":
     main()
