@@ -15,6 +15,8 @@ def construct_probability_model(df):
 
 
     X = df.drop(['Unnamed: 0','Outcome'], axis = 1)
+
+    print(X.columns)
     y = df['Outcome']
 
     smote = SMOTE( sampling_strategy = 1.0, random_state=101)
@@ -28,7 +30,7 @@ def construct_probability_model(df):
 
 def forecast_yac(df):
 
-    model = LinearRegression()
+    model = RandomForestRegressor(n_estimators = 100)
 
     df = df.fillna(0)
 
@@ -36,7 +38,9 @@ def forecast_yac(df):
 
     df = df.loc[(df!=0).any(axis=1)]
 
-    X = df.drop(['Unnamed: 0','YAC', 'WR2', 'WR3', 'WR4','CB4','CB5','OLB3','OLB4','ILB3', 'TE2', 'TE3', 'DE4', 'RB2', 'CB3'], axis = 1)
+    X = df.drop(['Unnamed: 0','YAC', 'WR2', 'WR3', 'WR4','CB4','CB5','OLB3','OLB4','ILB3', 'TE2', 'TE3', 'DE4', 'RB2', 'CB3',
+                'WR2S',  'CB4S','CB5S','OLB3S',  'DE4S', 'RB2S', 'CB3S',
+                'WR2A',  'CB4A','CB5A', 'DE4A', 'RB2A', 'CB3A'], axis = 1)
 
     #X = df.drop('YAC', axis = 1)
     y = df['YAC']
@@ -45,7 +49,40 @@ def forecast_yac(df):
 
     return model
 
+def marginal_calculate_aggregate_openness_percentage(play_df, displayName):
 
+    sum = 0
+    marginal = 0
+
+    players = pd.read_csv("C:/Users/anime/Downloads/players.csv")
+
+
+    for x in range(0, len(play_df)):
+
+        if play_df.iloc[x]['displayName'] == displayName:
+
+            marginal += play_df.iloc[x]['Adjusted Difference Maximum']
+
+        if play_df.iloc[x]['closestplay'] == displayName:
+
+            marginal += play_df.iloc[x]['distancefromweapon']
+
+        if play_df.iloc[x]['displayName'] in play_df['closestplay'].unique() and play_df.iloc[x]['position'] != 'QB':
+
+
+
+            sum += play_df.iloc[x]['Adjusted Difference Maximum']
+
+
+        if play_df.iloc[x]['closestplay'] != 'test':
+
+            if (play_df.iloc[x]['position'] == 'NT' or play_df.iloc[x]['position'] == 'DE' or play_df.iloc[x]['position'] == 'CB'
+                or play_df.iloc[x]['position'] == 'FS' or play_df.iloc[x]['position'] == 'OLB' or play_df.iloc[x]['position'] == 'ILB' 
+                and players[players['displayName'] == play_df.iloc[x]['closestplay']].iloc[0]['position'] != 'QB'):
+
+                sum += play_df.iloc[x]['distancefromweapon']
+
+    return marginal/sum
 def calculate_aggregate_openness_percentage(play_df, displayName):
 
     sum = 0
@@ -67,6 +104,7 @@ def calculate_aggregate_openness_percentage(play_df, displayName):
         if play_df.iloc[x]['displayName'] in play_df['closestplay'].unique() and play_df.iloc[x]['position'] != 'QB':
 
             sum += play_df.iloc[x]['Adjusted Difference Maximum']
+        print(play_df.iloc[x]['closestplay'])
 
         if (play_df.iloc[x]['position'] == 'NT' or play_df.iloc[x]['position'] == 'DE' or play_df.iloc[x]['position'] == 'CB'
             or play_df.iloc[x]['position'] == 'FS' or play_df.iloc[x]['position'] == 'OLB' or play_df.iloc[x]['position'] == 'ILB' 
@@ -332,6 +370,10 @@ def find_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac_mod
         
     for b in dataframe_columns:
         row_dict[b] = 0
+        speed_column = b + 'S'
+        acc_column = b + 'A'
+        row_dict[speed_column] = 0
+        row_dict[acc_column] = 0
 
             
 
@@ -349,6 +391,11 @@ def find_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac_mod
 
 
                 row_dict[b] = copy.iloc[c]['Adjusted Difference Maximum']
+                speed_column = b + 'S'
+                acc_column = b + 'A'
+                row_dict[speed_column] = copy.iloc[c]['s']
+                row_dict[acc_column] = copy.iloc[c]['a']
+
 
                 used_indexes.append(c)
 
@@ -369,6 +416,12 @@ def find_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac_mod
 
                 row_dict[b] = copy.iloc[c]['distancefromweapon']
 
+                speed_column = b + 'S'
+                acc_column = b + 'A'
+                row_dict[speed_column] = copy.iloc[c]['s']
+                row_dict[acc_column] = copy.iloc[c]['a']
+
+
                 used_indexes.append(c)
 
                     #copy.at[c, 'position'] = 'C'
@@ -378,11 +431,14 @@ def find_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac_mod
 
     rows.append(row_dict)
 
-    line_fitting_df = pd.DataFrame({'QB1':[], 'QB2':[], 'WR1':[], 'WR2':[], 'WR3':[], 'WR4':[], 'CB1':[], 'CB2':[], 'CB3':[], 'CB4':[], 'CB5':[], 
-                     'OLB1':[], 'OLB2':[], 'OLB3':[], 'OLB4':[], 'ILB1':[], 'ILB2':[], 'ILB3':[],  'FS1':[], 'FS2':[], 'FS3':[], 
-                     'NT1':[], 'NT2':[], 'TE1':[], 'TE2':[], 'TE3':[], 'DE1':[], 'DE2':[], 'DE3':[], 'DE4':[], 'RB1':[], 'RB2':[], 'Outcome':[]})
+   # line_fitting_df = pd.DataFrame({'QB1':[], 'QB2':[], 'WR1':[], 'WR2':[], 'WR3':[], 'WR4':[], 'CB1':[], 'CB2':[], 'CB3':[], 'CB4':[], 'CB5':[], 
+    ##                'NT1':[], 'NT2':[], 'TE1':[], 'TE2':[], 'TE3':[], 'DE1':[], 'DE2':[], 'DE3':[], 'DE4':[], 'RB1':[], 'RB2':[], 'Outcome':[]})
     
     line_fitting_df = pd.DataFrame.from_dict(rows, orient='columns')
+
+    print(line_fitting_df.columns)
+
+    line_fitting_df = line_fitting_df.reindex(columns = line_fitting_dataset.drop(['Outcome', 'Unnamed: 0'], axis = 1).columns)
 
     completion_probability = prob_model.predict_proba(line_fitting_df) 
 
@@ -425,6 +481,11 @@ def find_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac_mod
             row_dict[b] = 0
 
             row_dict['Name'] = copy.iloc[0]['displayName']
+
+            speed_column = b + 'S'
+            acc_column = b + 'A'
+            row_dict[speed_column] = 0
+            row_dict[acc_column] = 0
           
 
 
@@ -449,6 +510,12 @@ def find_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac_mod
 
                     row_dict[b] = copy.iloc[c]['Adjusted Difference Maximum']
 
+                    speed_column = b + 'S'
+                    acc_column = b + 'A'
+                    row_dict[speed_column] = copy.iloc[c]['s']
+                    row_dict[acc_column] = copy.iloc[c]['a']
+
+
                     used_indexes.append(c)
 
                         # copy.at[c, 'position'] = 'C'
@@ -468,6 +535,12 @@ def find_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac_mod
 
                     row_dict[b] = copy.iloc[c]['distancefromweapon']
 
+                    speed_column = b + 'S'
+                    acc_column = b + 'A'
+                    row_dict[speed_column] = copy.iloc[c]['s']
+                    row_dict[acc_column] = copy.iloc[c]['a']
+
+
                     used_indexes.append(c)
 
                             #copy.at[c, 'position'] = 'C'
@@ -483,9 +556,9 @@ def find_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac_mod
 
   
 
-    yac_df = pd.DataFrame({ 'WR1':[], 'WR2':[], 'WR3':[], 'WR4':[], 'CB1':[], 'CB2':[], 'CB3':[], 'CB4':[], 'CB5':[], 
-                     'OLB1':[], 'OLB2':[], 'OLB3':[], 'OLB4':[], 'ILB1':[], 'ILB2':[], 'ILB3':[],  'FS1':[], 'FS2':[], 'FS3':[], 
-                     'NT1':[], 'NT2':[], 'TE1':[], 'TE2':[], 'TE3':[], 'DE1':[], 'DE2':[], 'DE3':[], 'DE4':[], 'RB1':[], 'RB2':[], 'YAC':[]})
+   # yac_df = pd.DataFrame({ 'WR1':[], 'WR2':[], 'WR3':[], 'WR4':[], 'CB1':[], 'CB2':[], 'CB3':[], 'CB4':[], 'CB5':[], 
+    #                 'OLB1':[], 'OLB2':[], 'OLB3':[], 'OLB4':[], 'ILB1':[], 'ILB2':[], 'ILB3':[],  'FS1':[], 'FS2':[], 'FS3':[], 
+     #                'NT1':[], 'NT2':[], 'TE1':[], 'TE2':[], 'TE3':[], 'DE1':[], 'DE2':[], 'DE3':[], 'DE4':[], 'RB1':[], 'RB2':[], 'YAC':[]})
     
     yac_df = pd.DataFrame.from_dict(rows, orient='columns')
 
@@ -532,30 +605,37 @@ def find_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac_mod
 
             #print(type(completion_probability))
             #print(completion_probability[0][1])
+
+            yac =yac_df[yac_df['Name'] == x].drop(['Name', 'NameS', 'NameA','WR2', 'WR3', 'WR4','CB4','CB5','OLB3','OLB4','ILB3', 'TE2', 'TE3', 'DE4', 'RB2', 'CB3',
+                'WR2S',  'CB4S','CB5S','OLB3S',  'DE4S', 'RB2S', 'CB3S',
+                'WR2A',  'CB4A','CB5A', 'DE4A', 'RB2A', 'CB3A', 'ILB3A', 'ILB3S', 'OLB4A', 'OLB4S', 'TE2A', 'TE2S',
+                'TE3A', 'TE3S', 'WR3A', 'WR3S', 'WR4A', 'WR4S'], axis = 1).reindex(columns = yac_dataset.drop(['Unnamed: 0','YAC', 'WR2', 'WR3', 'WR4','CB4','CB5','OLB3','OLB4','ILB3', 'TE2', 'TE3', 'DE4', 'RB2', 'CB3',
+                'WR2S',  'CB4S','CB5S','OLB3S',  'DE4S', 'RB2S', 'CB3S',
+                'WR2A',  'CB4A','CB5A', 'DE4A', 'RB2A', 'CB3A'], axis = 1).columns)
             
 
 
 
             
-            utility += completion_probability[0][1] * ((dist + yac_model.predict(yac_df[yac_df['Name'] == x].drop(['Name','WR2', 'WR3', 'WR4','CB4','CB5','OLB3','OLB4','ILB3', 'TE2', 'TE3', 'DE4', 'RB2', 'CB3'], axis = 1))) * calculate_aggregate_openness_percentage(play_df, x))
+            utility += completion_probability[0][1] * ((dist + yac_model.predict(yac)) * calculate_aggregate_openness_percentage(play_df, x))
 
     
     return utility
 
 
-def extract_play_df_list(week_data_path, gameId, playId):
+def extract_play_df_list(df):
 
-    df = pd.read_csv(week_data_path)
+   # df = pd.read_csv(week_data_path)
 
     
 
-    players = pd.read_csv("C:/Users/anime/Downloads/players.csv")
+   # players = pd.read_csv("C:/Users/anime/Downloads/players.csv")
 
-    df = pd.merge(df, players, on = 'displayName', how = 'left')
+  #  df = pd.merge(df, pd.read_csv("C:/Users/anime/Downloads/players.csv"), on = 'displayName', how = 'left')
 
-    df = df[df['gameId'] == gameId]
+   # df = df[df['gameId'] == gameId]
 
-    df = df[df['playId'] == playId]
+   # df = df[df['playId'] == playId]
 
     df.reset_index(inplace = True)
 
@@ -579,6 +659,8 @@ def extract_play_df_list(week_data_path, gameId, playId):
 
             df['time'][x] = (datetime.strptime(df['time'][x], "%H:%M:%S") - datetime(1900, 1, 1)).total_seconds()
 
+   # print(df['time'].min())
+
 
 
     df['time'] = df['time'] - df['time'].min()
@@ -595,11 +677,22 @@ def extract_play_df_list(week_data_path, gameId, playId):
 
     df['time'] = df['time'] - snap_time
 
+    df['time'] = np.round(df['time'], 2)
+
+    df = df.sort_values(by = 'time')
+    copy = df.drop_duplicates(subset = ['time'])
+    
+    copy.reset_index(inplace = True)
+
+    copy = copy["time"]
+
     df.reset_index(inplace=True)
 
-    for x in df['time']:
 
-        df_list.append(df[df['time'] == x])
+
+    for x in range(0, len(copy)):
+
+        df_list.append(df[df['time'] == copy[x]])
 
     
 
@@ -859,6 +952,13 @@ def marginal_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac
     for b in dataframe_columns:
         row_dict[b] = 0
 
+        speed_column = b + 'S'
+        acc_column = b + 'A'
+        row_dict[speed_column] = 0
+        row_dict[acc_column] = 0
+
+
+
             
 
             
@@ -875,6 +975,11 @@ def marginal_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac
 
 
                 row_dict[b] = copy.iloc[c]['Adjusted Difference Maximum']
+
+                speed_column = b + 'S'
+                acc_column = b + 'A'
+                row_dict[speed_column] = copy.iloc[c]['s']
+                row_dict[acc_column] = copy.iloc[c]['a']
 
                 used_indexes.append(c)
 
@@ -895,6 +1000,11 @@ def marginal_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac
 
                 row_dict[b] = copy.iloc[c]['distancefromweapon']
 
+                speed_column = b + 'S'
+                acc_column = b + 'A'
+                row_dict[speed_column] = copy.iloc[c]['s']
+                row_dict[acc_column] = copy.iloc[c]['a']
+
                 used_indexes.append(c)
 
                     #copy.at[c, 'position'] = 'C'
@@ -909,6 +1019,8 @@ def marginal_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac
                      'NT1':[], 'NT2':[], 'TE1':[], 'TE2':[], 'TE3':[], 'DE1':[], 'DE2':[], 'DE3':[], 'DE4':[], 'RB1':[], 'RB2':[], 'Outcome':[]})
     
     line_fitting_df = pd.DataFrame.from_dict(rows, orient='columns')
+
+    line_fitting_df = line_fitting_df.reindex(columns = line_fitting_dataset.drop(['Outcome', 'Unnamed: 0'], axis = 1).columns)
 
     completion_probability = prob_model.predict_proba(line_fitting_df) 
 
@@ -951,6 +1063,11 @@ def marginal_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac
             row_dict[b] = 0
 
             row_dict['Name'] = copy.iloc[0]['displayName']
+
+            speed_column = b + 'S'
+            acc_column = b + 'A'
+            row_dict[speed_column] = 0
+            row_dict[acc_column] = 0
           
 
 
@@ -975,6 +1092,11 @@ def marginal_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac
 
                     row_dict[b] = copy.iloc[c]['Adjusted Difference Maximum']
 
+                    speed_column = b + 'S'
+                    acc_column = b + 'A'
+                    row_dict[speed_column] = copy.iloc[c]['s']
+                    row_dict[acc_column] = copy.iloc[c]['a']
+
                     used_indexes.append(c)
 
                         # copy.at[c, 'position'] = 'C'
@@ -993,6 +1115,11 @@ def marginal_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac
                             
 
                     row_dict[b] = copy.iloc[c]['distancefromweapon']
+
+                    speed_column = b + 'S'
+                    acc_column = b + 'A'
+                    row_dict[speed_column] = copy.iloc[c]['s']
+                    row_dict[acc_column] = copy.iloc[c]['a']
 
                     used_indexes.append(c)
 
@@ -1040,9 +1167,17 @@ def marginal_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac
     for x in play_df['closestplay'].unique():
         #print(utility)
 
+        check = 0
+
+        for a in range(0, len(play_df[play_df['closestplay'] == x])):
+
+            if play_df[play_df['closestplay'] == x].iloc[a]['displayName'] == player_name:
+
+                check = 1
 
 
-        if x != 'test' and players[players['displayName'] == x].iloc[0]['position'] != 'QB':
+
+        if check == 0 and players[players['displayName'] == x].iloc[0]['position'] != 'QB':
 
             
             play_df['distancefromlos'] = play_df['distancefromlos'].fillna(0)
@@ -1058,14 +1193,27 @@ def marginal_utility(play_df, line_fitting_dataset, yac_dataset, prob_model, yac
 
             #print(type(completion_probability))
             #print(completion_probability[0][1])
+
+            yac =yac_df[yac_df['Name'] == x].drop(['Name', 'NameS', 'NameA','WR2', 'WR3', 'WR4','CB4','CB5','OLB3','OLB4','ILB3', 'TE2', 'TE3', 'DE4', 'RB2', 'CB3',
+                'WR2S',  'CB4S','CB5S','OLB3S',  'DE4S', 'RB2S', 'CB3S',
+                'WR2A',  'CB4A','CB5A', 'DE4A', 'RB2A', 'CB3A', 'ILB3A', 'ILB3S', 'OLB4A', 'OLB4S', 'TE2A', 'TE2S',
+                'TE3A', 'TE3S', 'WR3A', 'WR3S', 'WR4A', 'WR4S'], axis = 1).reindex(columns = yac_dataset.drop(['Unnamed: 0','YAC', 'WR2', 'WR3', 'WR4','CB4','CB5','OLB3','OLB4','ILB3', 'TE2', 'TE3', 'DE4', 'RB2', 'CB3',
+                'WR2S',  'CB4S','CB5S','OLB3S',  'DE4S', 'RB2S', 'CB3S',
+                'WR2A',  'CB4A','CB5A', 'DE4A', 'RB2A', 'CB3A'], axis = 1).columns)
             
 
 
 
             
-            utility += completion_probability[0][1] * ((dist + yac_model.predict(yac_df[yac_df['Name'] == x].drop(['Name','WR2', 'WR3', 'WR4','CB4','CB5','OLB3','OLB4','ILB3', 'TE2', 'TE3', 'DE4', 'RB2', 'CB3'], axis = 1))) * calculate_aggregate_openness_percentage(play_df, x))
+            utility += completion_probability[0][1] * ((dist + yac_model.predict(yac)) * marginal_calculate_aggregate_openness_percentage(play_df, x))
 
     
+            
+
+
+
+            
+            
     return utility
 
 
