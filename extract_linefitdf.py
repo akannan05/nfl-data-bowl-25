@@ -378,6 +378,9 @@ for path in paths:
                      'OLB1', 'OLB2', 'OLB3', 'OLB4', 'ILB1', 'ILB2', 'ILB3',  'FS1', 'FS2', 'FS3', 
                      'NT1', 'NT2', 'TE1', 'TE2', 'TE3', 'DE1', 'DE2', 'DE3', 'DE4', 'RB1', 'RB2', 'Outcome']
     
+  
+    
+    
 
 
 
@@ -424,6 +427,11 @@ for path in paths:
 
                     row_dict[b] = copy.iloc[c]['Adjusted Difference Maximum']
 
+                    speed_column = b + 'S'
+                    acc_column = b + 'A'
+                    row_dict[speed_column] = copy.iloc[c]['s']
+                    row_dict[acc_column] = copy.iloc[c]['a']
+
                     used_indexes.append(c)
 
                 # copy.at[c, 'position'] = 'C'
@@ -442,6 +450,10 @@ for path in paths:
                     
 
                     row_dict[b] = copy.iloc[c]['distancefromweapon']
+                    speed_column = b + 'S'
+                    acc_column = b + 'A'
+                    row_dict[speed_column] = copy.iloc[c]['s']
+                    row_dict[acc_column] = copy.iloc[c]['a']
 
                     used_indexes.append(c)
 
@@ -451,17 +463,7 @@ for path in paths:
                 #copy.drop(c, inplace = True)
 
         rows.append(row_dict)    
-        
-
-
             
-
-  
-
-    line_fitting_df = pd.DataFrame({'QB1':[], 'QB2':[], 'WR1':[], 'WR2':[], 'WR3':[], 'WR4':[], 'CB1':[], 'CB2':[], 'CB3':[], 'CB4':[], 'CB5':[], 
-                     'OLB1':[], 'OLB2':[], 'OLB3':[], 'OLB4':[], 'ILB1':[], 'ILB2':[], 'ILB3':[],  'FS1':[], 'FS2':[], 'FS3':[], 
-                     'NT1':[], 'NT2':[], 'TE1':[], 'TE2':[], 'TE3':[], 'DE1':[], 'DE2':[], 'DE3':[], 'DE4':[], 'RB1':[], 'RB2':[], 'Outcome':[]})
-    
     line_fitting_df = pd.DataFrame.from_dict(rows, orient='columns')
 
     dataframe_columns = ['WR1', 'WR2', 'WR3', 'WR4', 'CB1', 'CB2', 'CB3', 'CB4', 'CB5', 
@@ -510,6 +512,11 @@ for path in paths:
 
                     row_dict[b] = copy.iloc[c]['Adjusted Difference Maximum']
 
+                    speed_column = b + 'S'
+                    acc_column = b + 'A'
+                    row_dict[speed_column] = copy.iloc[c]['s']
+                    row_dict[acc_column] = copy.iloc[c]['a']
+
                     used_indexes.append(c)
 
                     # copy.at[c, 'position'] = 'C'
@@ -529,6 +536,11 @@ for path in paths:
 
                     row_dict[b] = copy.iloc[c]['distancefromweapon']
 
+                    speed_column = b + 'S'
+                    acc_column = b + 'A'
+                    row_dict[speed_column] = copy.iloc[c]['s']
+                    row_dict[acc_column] = copy.iloc[c]['a']
+
                     used_indexes.append(c)
 
                         #copy.at[c, 'position'] = 'C'
@@ -544,9 +556,7 @@ for path in paths:
 
   
 
-    yac_df = pd.DataFrame({ 'WR1':[], 'WR2':[], 'WR3':[], 'WR4':[], 'CB1':[], 'CB2':[], 'CB3':[], 'CB4':[], 'CB5':[], 
-                     'OLB1':[], 'OLB2':[], 'OLB3':[], 'OLB4':[], 'ILB1':[], 'ILB2':[], 'ILB3':[],  'FS1':[], 'FS2':[], 'FS3':[], 
-                     'NT1':[], 'NT2':[], 'TE1':[], 'TE2':[], 'TE3':[], 'DE1':[], 'DE2':[], 'DE3':[], 'DE4':[], 'RB1':[], 'RB2':[], 'YAC':[]})
+    
     
     yac_df = pd.DataFrame.from_dict(rows, orient='columns')
 

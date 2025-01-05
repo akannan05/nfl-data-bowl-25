@@ -43,7 +43,7 @@ yac_model = forecast_yac(yac_dataset)
 
 #plt.show()
 
-paths = ["C:/Users/anime/Downloads/tracking_week_1.csv"]
+paths = ["C:/Users/anime/Downloads/tracking_week_5.csv"]
 data_list = []
 
 for x in paths:
@@ -70,6 +70,48 @@ marginals = []
 gameIds = []
 playIds = []
 mar_times = []
+
+def extract_play_utilities(df, gameId, playId):
+
+    gameId = []
+    playId = []
+    time = []
+    utils = []
+
+    df = df[df['gameId'] == gameId]
+    df = df[df['playId'] == playId]
+
+    if ('pass_outcome_caught' in df['event'].unique() or 'pass_outcome_incomplete' in df['event'].unique()
+        or 'interception' in df['event'].unique()) and ('line_set' in df['event'].unique() and 'ball_snap' in df['event'].unique()):
+            
+        print('hello')
+       
+        position = df[df['displayName'] == 'football'][df['event'] == 'ball_snap'].iloc[0]['x']
+
+        dfs = extract_play_df_list(df)
+
+        for z in range(0, len(dfs)):
+            print(len(dfs))
+            print(len(dfs) - z)
+            print(dfs[z].iloc[0]['time'])
+
+            utils.append(find_utility(dfs[z],line_dataset, yac_dataset, prob_model, yac_model, position))
+            time.append(dfs[z].iloc[0]['time'])
+            gameId.append(x)
+            playId.append(y)
+
+        df = pd.DataFrame()
+        df['Utility'] = utils
+        df['Time'] = time
+        df['gameId'] = gameId
+        df['playId'] = playId
+
+
+
+
+
+
+
 
 for x in all_data['gameId'].unique():
 
@@ -104,7 +146,7 @@ for x in all_data['gameId'].unique():
 
                     print(a)
 
-                    if a != 'football':
+                    if a != 'football' and len(players[players['displayName'] == a]) > 0:
 
                         pos = players[players['displayName'] == a].iloc[0]['position']
 
@@ -135,9 +177,9 @@ for x in all_data['gameId'].unique():
             all_play_utility_data['Utility'] = utils
             all_play_utility_data['Time'] = time
 
-            all_play_utility_data.to_csv("C:/Users/anime/Downloads/utility dataset.csv")
+            all_play_utility_data.to_csv("C:/Users/anime/Downloads/utility dataset update 1.csv")
 
-            all_play_marginal_data.to_csv("C:/Users/anime/Downloads/marginal dataset.csv")
+            all_play_marginal_data.to_csv("C:/Users/anime/Downloads/marginal dataset update 1.csv")
 
 
 
