@@ -4,37 +4,37 @@ import math
 
 import matplotlib.pyplot as plt
 
-week_1 = pd.read_csv('data/tracking_week_1.csv')
-week_2 = pd.read_csv('data/tracking_week_2.csv')
-week_3 = pd.read_csv('data/tracking_week_3.csv')
-week_4 = pd.read_csv('data/tracking_week_4.csv')
-week_5 = pd.read_csv('data/tracking_week_5.csv')
-week_6 = pd.read_csv('data/tracking_week_6.csv')
-week_7 = pd.read_csv('data/tracking_week_7.csv')
-week_8 = pd.read_csv('data/tracking_week_8.csv')
-week_9 = pd.read_csv('data/tracking_week_9.csv')
 players = pd.read_csv('data/players.csv')
 
 def extract(week, gameId, playId):
     match week:
         case 1:
+            week_1 = pd.read_csv('data/tracking_week_1.csv')
             myGame = week_1[week_1['gameId'] == gameId]
         case 2:
+            week_2 = pd.read_csv('data/tracking_week_2.csv')
             myGame = week_2[week_2['gameId'] == gameId]
         case 3:
+            week_3 = pd.read_csv('data/tracking_week_3.csv')
             myGame = week_3[week_3['gameId'] == gameId]
         case 4:
+            week_4 = pd.read_csv('data/tracking_week_4.csv')
             myGame = week_4[week_4['gameId'] == gameId]
         case 5:
+            week_5 = pd.read_csv('data/tracking_week_5.csv')
             myGame = week_5[week_5['gameId'] == gameId]
         case 6:
+            week_6 = pd.read_csv('data/tracking_week_6.csv')
             myGame = week_6[week_6['gameId'] == gameId]
         case 7:
+            week_7 = pd.read_csv('data/tracking_week_7.csv')
             myGame = week_7[week_7['gameId'] == gameId]
         case 8:
+            week_8 = pd.read_csv('data/tracking_week_8.csv')
             myGame = week_8[week_8['gameId'] == gameId]
         case 9:
-            myGame = week_9[week_9['gameId'] == gameId]
+            week_9 = pd.read_csv('data/tracking_week_9.csv')
+            myGame = week_9[week_9['gameId'] == gameId]    
             
     myPlay = myGame[myGame['playId'] == playId]
     
@@ -155,10 +155,44 @@ def findclosest(defense, weapons):
         merged_defenders.append(df_t)
         
     return merged_defenders
+
+def footballdata(week, gameId, play):
+    match week:
+        case 1:
+            week_1 = pd.read_csv('data/tracking_week_1.csv')
+            myGame = week_1[week_1['gameId'] == gameId]
+        case 2:
+            week_2 = pd.read_csv('data/tracking_week_2.csv')
+            myGame = week_2[week_2['gameId'] == gameId]
+        case 3:
+            week_3 = pd.read_csv('data/tracking_week_3.csv')
+            myGame = week_3[week_3['gameId'] == gameId]
+        case 4:
+            week_4 = pd.read_csv('data/tracking_week_4.csv')
+            myGame = week_4[week_4['gameId'] == gameId]
+        case 5:
+            week_5 = pd.read_csv('data/tracking_week_5.csv')
+            myGame = week_5[week_5['gameId'] == gameId]
+        case 6:
+            week_6 = pd.read_csv('data/tracking_week_6.csv')
+            myGame = week_6[week_6['gameId'] == gameId]
+        case 7:
+            week_7 = pd.read_csv('data/tracking_week_7.csv')
+            myGame = week_7[week_7['gameId'] == gameId]
+        case 8:
+            week_8 = pd.read_csv('data/tracking_week_8.csv')
+            myGame = week_8[week_8['gameId'] == gameId]
+        case 9:
+            week_9 = pd.read_csv('data/tracking_week_9.csv')
+            myGame = week_9[week_9['gameId'] == gameId] 
+    
+    myPlay = myGame[myGame['playId'] == play]
+    
+    return myPlay[myPlay['displayName'] == 'football']
     
     
 def main():
-    extractlist = extract(2022091200, 109)
+    extractlist = extract(1, 2022091200, 109)
     
     defense = separate(extractlist)[0]
     weapons = separate(extractlist)[1]
