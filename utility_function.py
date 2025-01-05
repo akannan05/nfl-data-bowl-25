@@ -690,7 +690,7 @@ def extract_play_df_list(df):
 
 
 
-    for x in range(0, len(copy), 10):
+    for x in range(0, len(copy)):
 
         df_list.append(df[df['time'] == copy[x]])
 

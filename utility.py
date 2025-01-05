@@ -167,3 +167,9 @@ def extract_marginal_play_utilities(df, gameId, playId):
 all_data = pd.merge(pd.read_csv("C:/Users/anime/Downloads/tracking_week_1.csv"), players, on = 'displayName', how = 'left')
 extract_play_utilities(all_data, 2022091200, 109).to_csv("C:/Users/anime/Downloads/utility visual full play.csv")
 extract_marginal_play_utilities(all_data, 2022091200, 109).to_csv("C:/Users/anime/Downloads/utility visual marginals.csv")
+
+# marginal.loc[marginal['Utility'] < 0, 'Utility'] = 0
+#marginal['Utility'] = marginal['Marginal Utility']
+# for x in range(0, len(marginal['Utility'])):
+
+#    marginal['Utility'][x] = float(marginal['Utility'][x][1:-1])
