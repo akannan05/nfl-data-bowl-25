@@ -1,4 +1,4 @@
-from flask import Flask, request, send_file, render_template_string
+from flask import Flask, request, send_file, render_template_string, render_template
 
 import matplotlib.pyplot as plt 
 import matplotlib.animation as anim 
@@ -16,17 +16,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return '''
-    <form action="/generate" method="post">
-        <label for="week">Week Number:</label>
-        <input type="text" id="week" name="weeknum"><br><br>
-        <label for="game">Game ID:</label>
-        <input type="number" id="game" name="gameid"><br><br>
-        <label for="play">Play ID:</label>
-        <input type="number" id="play" name="playid"><br><br>
-        <input type="submit" value="Generate Animation">
-    </form>
-    '''
+    return render_template('input.html')
     
 def clean_data(week, game, play):
     extractlist = appextract.extract(week, game, play)
@@ -102,8 +92,8 @@ def generate_anim(data):
     ax.axis([0, 120, 0, 54])
     ax.set_xlabel("Yards")
     
-    ax.axvspan(0,10, color='burlywood')
-    ax.axvspan(110,120, color='burlywood')
+    ax.axvspan(0,10, color='burlywood', zorder=0)
+    ax.axvspan(110,120, color='burlywood', zorder=0)
         
     ax.set_xticks(range(10, 111, 10))
     ax.grid(axis='x', linestyle='--', color='gray')  # Dashed gray gridlines
