@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFL Data Visualization Input</title>
+    <link rel="stylesheet" href="static/css/input.css">
+</head>
+<body>
+    <header>NFL Data Visualization Input</header>
+    <main>
+        <form action="/generate" method="post">
+            <div class="form-group">
+                <label for="week">Week Number:</label>
+                <input type="text" id="week" name="weeknum" placeholder="Enter week number" required>
+            </div>
+            <div class="form-group">
+                <label for="game">Game ID:</label>
+                <input type="number" id="game" name="gameid" placeholder="Enter game ID" required>
+            </div>
+            <div class="form-group">
+                <label for="play">Play ID:</label>
+                <input type="number" id="play" name="playid" placeholder="Enter play ID" required>
+            </div>
+            <div class="form-group">
+                <button type="submit">Generate Animation</button>
+            </div>
+        </form>
+    </main>
+    <footer>NFL Data Bowl</footer>
+</body>
+</html>
